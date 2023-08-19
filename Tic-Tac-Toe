@@ -1,0 +1,107 @@
+import random
+
+# Constants for the players
+PLAYER_X = 'X'
+PLAYER_O = 'O'
+EMPTY = ' '
+
+# Function to display the board
+def display_board(board):
+    for row in board:
+        print(' | '.join(row))
+        print('-' * 9)
+
+# Function to check for a win
+def check_winner(board, player):
+    for row in board:
+        if all(cell == player for cell in row):
+            return True
+    for col in range(3):
+        if all(board[row][col] == player for row in range(3)):
+            return True
+    if all(board[i][i] == player for i in range(3)) or all(board[i][2 - i] == player for i in range(3)):
+        return True
+    return False
+
+# Function to check if the board is full
+def is_board_full(board):
+    return all(cell != EMPTY for row in board for cell in row)
+
+# Minimax function with Alpha-Beta Pruning
+def minimax(board, depth, maximizing_player):
+    if check_winner(board, PLAYER_X):
+        return 1
+    if check_winner(board, PLAYER_O):
+        return -1
+    if is_board_full(board):
+        return 0
+
+    if maximizing_player:
+        max_eval = float('-inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == EMPTY:
+                    board[row][col] = PLAYER_X
+                    eval = minimax(board, depth + 1, False)
+                    board[row][col] = EMPTY
+                    max_eval = max(max_eval, eval)
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == EMPTY:
+                    board[row][col] = PLAYER_O
+                    eval = minimax(board, depth + 1, True)
+                    board[row][col] = EMPTY
+                    min_eval = min(min_eval, eval)
+        return min_eval
+
+# Function to find the best move for the AI
+def find_best_move(board):
+    best_move = None
+    best_score = float('-inf')
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] == EMPTY:
+                board[row][col] = PLAYER_X
+                score = minimax(board, 0, False)
+                board[row][col] = EMPTY
+                if score > best_score:
+                    best_score = score
+                    best_move = (row, col)
+    return best_move
+
+# Main game loop
+def play_game():
+    board = [[EMPTY for _ in range(3)] for _ in range(3)]
+    display_board(board)
+
+    while not is_board_full(board):
+        row, col = find_best_move(board)
+        board[row][col] = PLAYER_X
+        display_board(board)
+
+        if check_winner(board, PLAYER_X):
+            print("AI wins!")
+            break
+
+        if is_board_full(board):
+            print("It's a draw!")
+            break
+
+        human_row = int(input("Enter row (0-2): "))
+        human_col = int(input("Enter col (0-2): "))
+        while board[human_row][human_col] != EMPTY:
+            print("Cell is already occupied. Try again.")
+            human_row = int(input("Enter row (0-2): "))
+            human_col = int(input("Enter col (0-2): "))
+        board[human_row][human_col] = PLAYER_O
+        display_board(board)
+
+        if check_winner(board, PLAYER_O):
+            print("You win!")
+            break
+
+# Start the game
+play_game()
